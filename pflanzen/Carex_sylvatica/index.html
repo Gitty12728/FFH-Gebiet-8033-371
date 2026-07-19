@@ -1,1 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pflanzen Bildergalerie</title>
+    <script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/lite.umd.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; }
+        .bild-container { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .bild-titel { font-size: 1.2rem; margin-top: 0; margin-bottom: 5px; color: #555; }
+        .meta-daten { font-size: 0.9rem; color: #7f8c8d; margin-bottom: 15px; line-height: 1.4; }
+        .pflanzen-bild { max-width: 100%; height: auto; display: block; border-radius: 4px; }
+    </style>
+</head>
+<body>
 
+    <h1 id="galerie-titel">Bilderchronik</h1>
+    <div id="galerie-ordner"></div>
+
+    <script>
+        // Erkennt Nutzer, Repo und aktuellen Pflanzenordner vollautomatisch aus der URL
+        const hostTeile = window.location.hostname.split('.');
+        const nutzer = hostTeile[0]; 
+        
+        const pfadTeile = window.location.pathname.split('/').filter(Boolean);
+        const repo = pfadTeile[0]; 
+        const aktuellerOrdner = pfadTeile[pfadTeile.length - 1]; 
+
+        document.getElementById('galerie-titel').innerText = "Bilderchronik: " + aktuellerOrdner.replace(/_/g, ' ');
+
+        const apiUrl = `https://api.github.com/repos/${nutzer}/${repo}/contents/pflanzen/${aktuellerOrdner}`;
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(dateien => {
+                const galerie = document.getElementById('galerie-ordner');
+                const bildEndungen = ['jpg', 'jpeg', 'png', 'webp'];
+                
+                dateien.forEach(datei => {
+                    const endung = datei.name.split('.').pop().toLowerCase();
+                    
+                    if (datei.type === 'file' && bildEndungen.includes(endung) && datei.name !== 'index.html') {
+                        
+                        const container = document.createElement('div');
+                        container.className = 'bild-container';
+                        
+                        const titel = document.createElement('h3');
+                        titel.className = 'bild-titel';
+                        titel.innerText = datei.name; 
+                        
+                        const metaDiv = document.createElement('div');
+                        metaDiv.className = 'meta-daten';
+                        metaDiv.innerText = "Lade Bilddaten...";
+
+                        const img = document.createElement('img');
+                        img.className = 'pflanzen-bild';
+                        img.src = datei.name; 
+                        img.alt = datei.name;
+                        
+                        container.appendChild(titel);
+                        container.appendChild(metaDiv);
+                        container.appendChild(img);
+                        galerie.appendChild(container);
+
+                        exifr.parse(datei.name, {
+                            DateTimeOriginal: true,
+                            latitude: true,
+                            longitude: true
+                        })
+                        .then(exif => {
+                            let infoText = "";
+
+                            if (exif && exif.DateTimeOriginal) {
+                                const datum = new Date(exif.DateTimeOriginal);
+                                infoText += `📅 Aufnahmedatum: ${datum.toLocaleDateString('de-DE')} um ${datum.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'})} Uhr`;
+                            } else {
+                                infoText += "📅 Aufnahmedatum: Nicht im Bild gespeichert";
+                            }
+
+                            if (exif && exif.latitude && exif.longitude) {
+                                const lat = exif.latitude.toFixed(5);
+                                const lon = exif.longitude.toFixed(5);
+                                infoText += `<br>📍 Standort: ${lat}, ${lon} (<a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank">In Google Maps öffnen</a>)`;
+                            } else {
+                                infoText += "<br>📍 Standort: Keine GPS-Daten vorhanden";
+                            }
+
+                            metaDiv.innerHTML = infoText;
+                        })
+                        .catch(err => {
+                            console.error("Fehler beim Lesen der EXIF-Daten:", err);
+                            metaDiv.innerText = "Metadaten konnten nicht ausgelesen werden.";
+                        });
+                    }
+                });
+            })
+            .catch(fehler => {
+                console.error("Fehler beim Laden:", fehler);
+                document.getElementById('galerie-ordner').innerText = "Bilder konnten nicht geladen werden.";
+            });
+    </script>
+</body>
+</html>
