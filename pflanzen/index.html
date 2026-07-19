@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pflanzenübersicht - FFH-Gebiet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f6f7;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #27ae60;
+            padding-bottom: 10px;
+        }
+        .ordner-liste {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .ordner-eintrag {
+            background: #fff;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .ordner-eintrag:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .ordner-link {
+            display: block;
+            padding: 15px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .ordner-icon {
+            margin-right: 10px;
+        }
+        #lade-hinweis {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌿 Dokumentierte Pflanzenarten</h1>
+    
+    <div id="lade-hinweis">Verzeichnisse werden geladen...</div>
+    <ul id="pflanzen-liste" class="ordner-liste"></ul>
+
+    <script>
+        // Deine GitHub Repository-Daten
+        const nutzer = "Gitty12728";
+        const repo = "FFH-Gebiet-8033-371";
+        const aktuellerOrdner = "pflanzen";
+
+        // GitHub API-Endpunkt für den "pflanzen"-Ordner
+        const apiUrl = `https://api.github.com/repos/${nutzer}/${repo}/contents/${aktuellerOrdner}`;
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(daten => {
+                const liste = document.getElementById('pflanzen-liste');
+                const ladeHinweis = document.getElementById('lade-hinweis');
+                
+                // Hinweis ausblenden
+                ladeHinweis.style.display = 'none';
+
+                // Gehe alle Elemente im Ordner durch
+                daten.forEach(element => {
+                    // Wir wollen nur echte Unterordner anzeigen (keine Dateien wie index.html)
+                    if (element.type === 'dir') {
+                        
+                        // Schönere Darstellung: Unterstriche durch Leerzeichen ersetzen
+                        // und ersten Buchstaben groß schreiben
+                        const ordnerNameKlartext = element.name
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, l = > l.toUpperCase());
+
+                        // HTML-Elemente für die Liste erstellen
+                        const li = document.createElement('li');
+                        li.className = 'ordner-eintrag';
+
+                        const a = document.createElement('a');
+                        a.className = 'ordner-link';
+                        // Link führt direkt in den Unterordner (z.B. "calamagrostis_epigejos/")
+                        a.href = `${element.name}/`; 
+                        a.innerHTML = `<span class="ordner-icon">📁</span> ${ordnerNameKlartext}`;
+
+                        li.appendChild(a);
+                        liste.appendChild(li);
+                    }
+                });
+
+                // Falls der Ordner komplett leer sein sollte
+                if (liste.children.length === 0) {
+                    ladeHinweis.innerText = "Noch keine Pflanzenordner angelegt.";
+                    ladeHinweis.style.display = 'block';
+                }
+            })
+            .catch(fehler => {
+                console.error("Fehler beim Laden der Ordnerstruktur:", fehler);
+                document.getElementById('lade-hinweis').innerText = "Fehler beim Laden der Pflanzenliste.";
+            });
+    </script>
+</body>
+</html>
