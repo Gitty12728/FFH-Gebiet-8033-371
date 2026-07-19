@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pflanzen Bildergalerie</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+        }
+        .bild-container {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .bild-titel {
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .pflanzen-bild {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="galerie-titel">Bilderchronik</h1>
+    <div id="galerie-ordner"></div>
+
+    <script>
+        // 1. Deine GitHub-Daten (bleiben gleich)
+        const nutzer = "Gitty12728";
+        const repo = "FFH-Gebiet-8033-371";
+        
+        // 2. Das Skript findet AUTOMATISCH heraus, in welchem Ordner es liegt!
+        // Es liest den Namen des aktuellen Ordners aus dem Pfad der Webseite.
+        const pfadTeile = window.location.pathname.split('/');
+        // Holt den letzten Ordnernamen vor der index.html
+        const aktuellerOrdner = pfadTeile[pfadTeile.length - 2] || pfadTeile[pfadTeile.length - 1]; 
+
+        // Überschrift schön anzeigen (z.B. "Calamagrostis epigejos")
+        document.getElementById('galerie-titel').innerText = "Bilderchronik: " + aktuellerOrdner.replace(/_/g, ' ');
+
+        // 3. GitHub API fragen: "Welche Dateien liegen genau hier in diesem Ordner?"
+        const apiUrl = `https://api.github.com/repos/${nutzer}/${repo}/contents/${aktuellerOrdner}`;
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(dateien => {
+                const galerie = document.getElementById('galerie-ordner');
+                const bildEndungen = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+                
+                dateien.forEach(datei => {
+                    const endung = datei.name.split('.').pop().toLowerCase();
+                    
+                    // Zeige alle Bilder an, aber ignoriere die index.html selbst
+                    if (datei.type === 'file' && bildEndungen.includes(endung) && datei.name !== 'index.html') {
+                        
+                        const container = document.createElement('div');
+                        container.className = 'bild-container';
+                        
+                        // Dateiname als Überschrift
+                        const titel = document.createElement('h3');
+                        titel.className = 'bild-titel';
+                        titel.innerText = datei.name; 
+                        
+                        // Das Bild laden (direkt aus dem aktuellen Ordner)
+                        const img = document.createElement('img');
+                        img.className = 'pflanzen-bild';
+                        img.src = datei.name; // Da das Bild im selben Ordner liegt, reicht der Dateiname!
+                        img.alt = datei.name;
+                        
+                        container.appendChild(titel);
+                        container.appendChild(img);
+                        galerie.appendChild(container);
+                    }
+                });
+            })
+            .catch(fehler => {
+                console.error("Fehler beim Laden:", fehler);
+                document.getElementById('galerie-ordner').innerText = "Bilder konnten nicht geladen werden.";
+            });
+    </script>
+</body>
+</html>
