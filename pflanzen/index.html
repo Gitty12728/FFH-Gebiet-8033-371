@@ -59,12 +59,10 @@
     <ul id="pflanzen-liste" class="ordner-liste"></ul>
 
     <script>
-        // Deine GitHub Repository-Daten
         const nutzer = "Gitty12728";
         const repo = "FFH-Gebiet-8033-371";
         const aktuellerOrdner = "pflanzen";
 
-        // GitHub API-Endpunkt für den "pflanzen"-Ordner
         const apiUrl = `https://api.github.com/repos/${nutzer}/${repo}/contents/${aktuellerOrdner}`;
 
         fetch(apiUrl)
@@ -73,27 +71,19 @@
                 const liste = document.getElementById('pflanzen-liste');
                 const ladeHinweis = document.getElementById('lade-hinweis');
                 
-                // Hinweis ausblenden
                 ladeHinweis.style.display = 'none';
 
-                // Gehe alle Elemente im Ordner durch
                 daten.forEach(element => {
-                    // Wir wollen nur echte Unterordner anzeigen (keine Dateien wie index.html)
                     if (element.type === 'dir') {
-                        
-                        // Schönere Darstellung: Unterstriche durch Leerzeichen ersetzen
-                        // und ersten Buchstaben groß schreiben
                         const ordnerNameKlartext = element.name
                             .replace(/_/g, ' ')
-                            .replace(/\b\w/g, l = > l.toUpperCase());
+                            .replace(/\b\w/g, l => l.toUpperCase());
 
-                        // HTML-Elemente für die Liste erstellen
                         const li = document.createElement('li');
                         li.className = 'ordner-eintrag';
 
                         const a = document.createElement('a');
                         a.className = 'ordner-link';
-                        // Link führt direkt in den Unterordner (z.B. "calamagrostis_epigejos/")
                         a.href = `${element.name}/`; 
                         a.innerHTML = `<span class="ordner-icon">📁</span> ${ordnerNameKlartext}`;
 
@@ -102,7 +92,6 @@
                     }
                 });
 
-                // Falls der Ordner komplett leer sein sollte
                 if (liste.children.length === 0) {
                     ladeHinweis.innerText = "Noch keine Pflanzenordner angelegt.";
                     ladeHinweis.style.display = 'block';
