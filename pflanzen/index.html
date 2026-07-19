@@ -3,52 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pflanzenübersicht - FFH-Gebiet</title>
+    <title>Pflanzenübersicht</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f6f7;
-            color: #333;
-        }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 3px solid #27ae60;
-            padding-bottom: 10px;
-        }
-        .ordner-liste {
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-        .ordner-eintrag {
-            background: #fff;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .ordner-eintrag:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .ordner-link {
-            display: block;
-            padding: 15px 20px;
-            color: #2c3e50;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        .ordner-icon {
-            margin-right: 10px;
-        }
-        #lade-hinweis {
-            font-style: italic;
-            color: #7f8c8d;
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f6f7; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #27ae60; padding-bottom: 10px; }
+        .ordner-liste { list-style: none; padding: 0; margin-top: 20px; }
+        .ordner-eintrag { background: #fff; margin-bottom: 12px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
+        .ordner-eintrag:hover { transform: translateX(5px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .ordner-link { display: block; padding: 15px 20px; color: #2c3e50; text-decoration: none; font-weight: bold; font-size: 1.1rem; }
+        .ordner-icon { margin-right: 10px; }
+        #lade-hinweis { font-style: italic; color: #7f8c8d; }
     </style>
 </head>
 <body>
@@ -59,11 +23,15 @@
     <ul id="pflanzen-liste" class="ordner-liste"></ul>
 
     <script>
-        const nutzer = "Gitty12728";
-        const repo = "FFH-Gebiet-8033-371";
-        const aktuellerOrdner = "pflanzen";
+        // Erkennt Nutzer und Repo automatisch aus der URL (z.B. /FFH-Gebiet-8033-371/pflanzen/)
+        const hostTeile = window.location.hostname.split('.');
+        const nutzer = hostTeile[0]; 
+        
+        const pfadTeile = window.location.pathname.split('/').filter(Boolean);
+        const repo = pfadTeile[0]; 
 
-        const apiUrl = `https://api.github.com/repos/${nutzer}/${repo}/contents/${aktuellerOrdner}`;
+        // API-Endpunkt dynamisch generieren
+        const apiUrl = `https://api.github.com/repos/${nutzer}/${repo}/contents/pflanzen`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -98,7 +66,7 @@
                 }
             })
             .catch(fehler => {
-                console.error("Fehler beim Laden der Ordnerstruktur:", fehler);
+                console.error("Fehler beim Laden:", fehler);
                 document.getElementById('lade-hinweis').innerText = "Fehler beim Laden der Pflanzenliste.";
             });
     </script>
